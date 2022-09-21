@@ -1,26 +1,26 @@
 import cv2 as open_cv
 
+RED = (255, 0, 0)
 
-COLOR_RED = (255, 0, 0)
 
 def draw_parking_spot(image,
                   coordinates,
                   label,
                   font_color,
-                  border_color=COLOR_RED,
+                  border_color=RED,
                   line_thickness=1,
                   font=open_cv.FONT_HERSHEY_SIMPLEX,
                   font_scale=0.5):
     '''
-    :param image:
-    :param coordinates:
-    :param label:
+    :param image: the image on which the frames will be applied
+    :param coordinates: coordinates of marked parking spot
+    :param label: label of detected object
     :param font_color:
     :param border_color:
     :param line_thickness:
     :param font:
     :param font_scale:
-    :return:
+    :return: returns an image with marked parking spaces
     '''
     open_cv.drawContours(image,
                          [coordinates],

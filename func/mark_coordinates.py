@@ -2,7 +2,7 @@ import cv2 as open_cv
 import numpy as np
 from func.drawing import draw_parking_spot
 
-COLOR_WHITE = (255, 255, 255)
+WHITE = (255, 255, 255)
 
 
 class Coordinates:
@@ -10,12 +10,12 @@ class Coordinates:
     KEY_QUIT= ord('q')
 
 
-    def __init__(self, img, output, color):
+    def __init__(self, img, output_file, color):
         '''
-        :param img:
-        :param output:
+        :param img: frame from the video
+        :param output: config yaml with coordinates
         '''
-        self.output = output
+        self.output_file = output_file
         self.caption = img
         self.color = color
         self.image = open_cv.imread(img).copy()
@@ -27,9 +27,7 @@ class Coordinates:
         open_cv.setMouseCallback(self.caption, self.__mouse_callback)
 
     def generate(self):
-        '''
-        :return:
-        '''
+
         while True:
             open_cv.imshow(self.caption, self.image)
             key = open_cv.waitKey(0)
@@ -41,14 +39,7 @@ class Coordinates:
         open_cv.destroyWindow(self.caption)
 
     def __mouse_callback(self, event, x, y, flags, params):
-        '''
-        :param event:
-        :param x:
-        :param y:
-        :param flags:
-        :param params:
-        :return:
-        '''
+
 
         if event == open_cv.EVENT_LBUTTONDOWN:
             self.coordinates.append((x, y))
@@ -81,13 +72,13 @@ class Coordinates:
 
         coordinates = np.array(self.coordinates)
 
-        self.output.write("-\n          id: " + str(self.ids) + "\n          coordinates: [" +
+        self.output_file.write("-\n          id: " + str(self.ids) + "\n          coordinates: [" +
                           "[" + str(self.coordinates[0][0]) + "," + str(self.coordinates[0][1]) + "]," +
                           "[" + str(self.coordinates[1][0]) + "," + str(self.coordinates[1][1]) + "]," +
                           "[" + str(self.coordinates[2][0]) + "," + str(self.coordinates[2][1]) + "]," +
                           "[" + str(self.coordinates[3][0]) + "," + str(self.coordinates[3][1]) + "]]\n")
 
-        draw_parking_spot(self.image, coordinates, str(self.ids + 1), COLOR_WHITE)
+        draw_parking_spot(self.image, coordinates, str(self.ids + 1), WHITE)
 
         for i in range(0, 4):
             self.coordinates.pop()
