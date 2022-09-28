@@ -67,6 +67,9 @@ class SpotOccupancy:
         #                   {'id': 1, 'coordinates': [[361, 322], [415, 319], [437, 343], [394, 348]]},
         #                   {'id': 2, 'coordinates': [[296, 444], [368, 451], [340, 473], [303, 458]]}]
 
+        marked_spots = len(coordinates_data)  # liczba zaznaczonych miejsc parkingowych
+        free_spots = 0  # liczba wolnych miejsc parkingowych
+
         for p in coordinates_data:
             coordinates = self._coordinates(p)
 
@@ -145,9 +148,12 @@ class SpotOccupancy:
 
             for index, p in enumerate(coordinates_data): # zmiana koloru miejsca parkingowego
                 coordinates = self._coordinates(p)
-
+                occupated_spots = sum(statuses) #zlicza ilość TRUE w liście statusow
+                free_spots = len(coordinates_data)-occupated_spots
                 color = BLUE if statuses[index] else GREEN
-                draw_parking_spot(frame2, coordinates, str(p["id"] + 1), WHITE, color)
+                draw_parking_spot(frame2, coordinates, str(p["id"] + 1), WHITE, free_spots, color)
+
+            print("statusy", statuses)
 
             open_cv.imshow(str(self.video), frame2)
             k = open_cv.waitKey(1)

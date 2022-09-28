@@ -26,18 +26,30 @@ class SpotOccupancy:
 
         coordinates_data = self.coordinates_data
         logging.debug("coordinates data: %s", coordinates_data)
+        print("coordinates data: %s", coordinates_data)
+        # coordinates data: % s[{'id': 0, 'coordinates': [[145, 310], [204, 313], [222, 354], [153, 365]]}, {'id': 1, 'coordinates': [
+        # [361, 322], [415, 319], [437
+        #    , 343], [394, 348]]}, {'id': 2, 'coordinates': [[296, 444], [368, 451], [340, 473], [303, 458]]}]
 
         for p in coordinates_data:
             coordinates = self._coordinates(p)
             logging.debug("coordinates: %s", coordinates)
-
-            rect = open_cv.boundingRect(coordinates)
+            print("coordinates: %s", coordinates)
+            #coordinates: % s[[145 310]
+            #[204 313]
+            #[222 354]
+            #[153 365]]
+            rect = open_cv.boundingRect(coordinates) #calcutate top-up bounging ractingle of set point. return x, y, w, h
             logging.debug("rect: %s", rect)
+            print("rect: %s", rect)
+            #rect: %s (589, 281, 115, 48)
 
             new_coordinates = coordinates.copy()
-            new_coordinates[:, 0] = coordinates[:, 0] - rect[0]
-            new_coordinates[:, 1] = coordinates[:, 1] - rect[1]
+            new_coordinates[:, 0] = coordinates[:, 0] - rect[0] # punkty x zaznacznone - punkty x z boundig boxa
+            new_coordinates[:, 1] = coordinates[:, 1] - rect[1] #y
             logging.debug("new_coordinates: %s", new_coordinates)
+
+            print("new_coordinates: %s", new_coordinates, coordinates[:, 0],coordinates[:, 1])
 
             self.contours.append(coordinates)
             self.bounds.append(rect)
@@ -53,16 +65,17 @@ class SpotOccupancy:
             mask = mask == 255
             self.mask.append(mask)
             logging.debug("mask: %s", self.mask)
+            #print("mask: %s", self.mask)
 
         statuses = [False] * len(coordinates_data)
         times = [None] * len(coordinates_data)
 
         while capture.isOpened():
-            result, frame = capture.read()
+            sucess, frame = capture.read()
             if frame is None:
                 break
 
-            if not result:
+            if not sucess:
                 raise CaptureReadError("Error reading video capture on frame %s" % str(frame))
 
             blurred = open_cv.GaussianBlur(frame.copy(), (5, 5), 3)
@@ -71,8 +84,9 @@ class SpotOccupancy:
             logging.debug("new_frame: %s", new_frame)
 
             position_in_seconds = capture.get(open_cv.CAP_PROP_POS_MSEC) / 1000.0
-
+            print("pos in seconds", position_in_seconds)
             for index, c in enumerate(coordinates_data):
+                print(index, c)
                 status = self.__apply(grayed, index, c)
 
                 if times[index] is not None and self.same_status(statuses, index, status):
