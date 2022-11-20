@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 import torch
 import pandas
 import numpy
@@ -6,7 +7,7 @@ import json
 # Model
 #model = torch.hub.load('ultralytics/yolov5', 'yolov5s', force_reload=True)
 
-model = torch.hub.load(r'C:\Users\Bartłomiej\PycharmProjects\ParkingSpaceFinder\yolov5', 'custom', path=r'C:\Users\Bartłomiej\PycharmProjects\ParkingSpaceFinder\yolov5s.pt', source='local', force_reload=True)
+model = torch.hub.load(r'..\yolov5', 'custom', path=r'C:\Users\Bartłomiej\PycharmProjects\ParkingSpaceFinder\yolov5s.pt', source='local', force_reload=True)
 
 model.conf = 0.25  # confidence threshold (0-1)
 model.iou = 0.45  # NMS IoU threshold (0-1)
@@ -54,6 +55,15 @@ def draw_centroids_on_image(output_image, json_results):
         cx = int((xmin + xmax) / 2.0)
         cy = int((ymin + ymax) / 2.0)
         # print(cx,cy)
+
+        gray = cv2.cvtColor(output_image, cv2.COLOR_BGR2GRAY)
+        thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)[1]
+        cnts = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+        rect = cv2.minAreaRect(cnts[0])
+        box = np.int0(cv2.boxPoints(rect))
+        cv2.drawContours(image, [box], 0, (36, 255, 12), 3)
 
         cv2.circle(output_image, (cx, cy), 2, (0, 0, 255), 2, cv2.FILLED)  # draw center dot on detected object
         cv2.putText(output_image, str(str(cx) + " , " + str(cy)), (int(cx) - 40, int(cy) + 30),
@@ -105,26 +115,36 @@ def pointInRect(point,rect):
     return False
 
 print("+++++++++++=results by cv2")
-cap = cv2.VideoCapture('video/test1.mp4')
+cap = cv2.VideoCapture('../video/vid2.mp4')
 #cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
 #cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
 
 while cap.isOpened():
     sucess, frame = cap.read()
+    print("inloop")
     if not sucess:
         break
     results = model(frame)
     cv2.imshow("before", frame)
 
-    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # OpenCV image (BGR to RGB)
+    image1 = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # OpenCV image (BGR to RGB)
+    test = results.pandas().xyxy[0]
+
+    test["cx"] = round((test["xmin"] + test["xmax"]) / 2.0, 2)
+    test["cy"] = round((test["ymin"] + test["ymax"]) / 2.0, 2)
+    test["centroids"] = list(zip(test.cx,test.cy))
+    print("results1", test)
+    test2 = results.pandas().xywh[0]
+    print("results2", test2)
 
     #results = score_frame(image)
     #results.xyxy[0]  # im predictions (tensor)
     #results.pandas().xyxy[0]  # im predictions (pandas)
     json_results = results.pandas().xyxy[0].to_json(orient="records")
+    print("json_results", json_results)
+    #frame = plot_boxes(results, image1)
+    #frame, cx, cy = draw_centroids_on_image(frame, json_results)
 
-    #frame = plot_boxes(results, image)
-    frame, cx, cy = draw_centroids_on_image(frame, json_results)
     cv2.imshow("after", frame)
 
     k = cv2.waitKey(1)

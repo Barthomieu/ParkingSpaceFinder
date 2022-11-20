@@ -40,6 +40,8 @@ class SpotOccupancy:
         # Accessing each individual object and then getting its xmin, ymin, xmax and ymax to calculate its centroid
         centroids_list = []
         for objects in data:
+            #DANE Z YOLO {'xmin': 280.4359130859, 'ymin': 226.7133026123, 'xmax': 321.1462402344, 'ymax': 256.8363342285, 'confidence': 0.372656852, 'class': 2, 'name': 'car'}
+
             xmin = objects["xmin"]
             ymin = objects["ymin"]
             xmax = objects["xmax"]
@@ -51,9 +53,23 @@ class SpotOccupancy:
             centroids = [cx,cy]
             centroids_list.append(centroids)
 
+            gray = open_cv.cvtColor(output_image, open_cv.COLOR_BGR2GRAY)
+            thresh = open_cv.threshold(gray, 0, 255, open_cv.THRESH_BINARY_INV + open_cv.THRESH_OTSU)[1]
+            cnts = open_cv.findContours(thresh, open_cv.RETR_EXTERNAL, open_cv.CHAIN_APPROX_SIMPLE)
+
+
+            cnts = cnts[0] if len(cnts) == 2 else cnts[1]
+            print("CNTS", cnts)
+            rect = open_cv.minAreaRect(cnts[0])
+            print("RECT", rect)
+            box = np.int0(open_cv.boxPoints(rect))
+            print("BOX", box)
+            open_cv.drawContours(output_image, [box], 0, (36, 255, 12), 3)
+
+
             open_cv.circle(output_image, (cx, cy), 2, (0, 0, 255), 2, open_cv.FILLED)  # draw center dot on detected object
-            open_cv.putText(output_image, str(str(cx) + " , " + str(cy)), (int(cx) - 40, int(cy) + 30),
-                        open_cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, open_cv.LINE_AA)
+            #open_cv.putText(output_image, str(str(cx) + " , " + str(cy)), (int(cx) - 40, int(cy) + 30),
+                       # open_cv.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 255), 1, open_cv.LINE_AA)
 
         return (output_image, centroids_list)
 
@@ -72,9 +88,11 @@ class SpotOccupancy:
 
         for p in coordinates_data:
             coordinates = self._coordinates(p)
-
+            rect2 = open_cv.minAreaRect(coordinates)
             rect = open_cv.boundingRect(coordinates)
             logging.debug("rect: %s", rect)
+            print("rect", rect)
+            print("rect 2 ____", rect2)
 
             new_coordinates = coordinates.copy()
             new_coordinates[:, 0] = coordinates[:, 0] - rect[0]
@@ -153,7 +171,7 @@ class SpotOccupancy:
                 color = BLUE if statuses[index] else GREEN
                 draw_parking_spot(frame2, coordinates, str(p["id"] + 1), WHITE, free_spots, color)
 
-            print("statusy", statuses)
+            #print("statusy", statuses)
 
             open_cv.imshow(str(self.video), frame2)
             k = open_cv.waitKey(1)
