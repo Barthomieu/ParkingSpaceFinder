@@ -19,12 +19,11 @@ def k_closest(points, target, K):
         })
 
     d = sorted(d, key=lambda l: l["first"])
-    print("DEEE", d)
-    print(d[i]["first"])
     for i in range(K):
         pt = []
         pt.append(points[d[i]["second"]][0])
         pt.append(points[d[i]["second"]][1])
+        pt.append(d[i]["first"])
 
         pts.append(pt)
 
@@ -39,5 +38,21 @@ def calculate_averange_vehicle_size(coords, cars_in_area):
     return vehicle_width
 
 
+def area_points(p1,p2):
+    dist = ((p1[0] - p2[0]) ** 2 + (p1[1] - p2[1]) ** 2) ** (1 / 2)
+    mid= midpoint(p1,p2)
+    return [p1,p2,dist,mid]
 
+
+def midpoint(p1, p2):
+    return (round((p1[0] + p2[0]) / 2), round((p1[1] + p2[1]) / 2))
+
+
+def find_shorter_side(coord):
+    side_length = []
+    for i in range(len(coord)):
+        side_length.append(area_points(coord[i-1], coord[i]))
+    side_length.sort(key=lambda x: x[2]) # sortowanie po po długości
+
+    return side_length[0:2]
 

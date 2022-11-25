@@ -4,7 +4,7 @@ import cv2 as open_cv
 import numpy as np
 import json
 from matplotlib import path
-from func.utils import k_closest, calculate_averange_vehicle_size
+from func.utils import calculate_averange_vehicle_size, find_shorter_side
 from func.drawing import draw_lines_between_cars
 
 
@@ -22,9 +22,9 @@ class SpotFinder():
         :return: pre-trained model
         """
         model = torch.hub.load(r'C:\Users\Bartłomiej\PycharmProjects\ParkingSpaceFinder\yolov5', 'custom', path=r'C:\Users\Bartłomiej\PycharmProjects\ParkingSpaceFinder\yolov5s.pt', source='local', force_reload=True)
-        model.conf = 0.25  # confidence threshold (0-1)
-        model.iou = 0.45  # NMS IoU threshold (0-1)
-        model.classes = [2,3,5,7]  # (optional list) filter by class, i.e. = [0, 15, 16] for persons, cats and dogs
+        #model.conf = 0.25  # confidence threshold (0-1)
+        #model.iou = 0.45  # NMS IoU threshold (0-1)
+        #model.classes = [2,3,5,7]  # (optional list) filter by class, i.e. = [0, 15, 16] for persons, cats and dogs
 
         return model
 
@@ -72,6 +72,7 @@ class SpotFinder():
             print("json RESULTS\n", json_results)
             #results = results.pandas().xyxy[0]
             results = results.pandas().xywh[0]
+
             #results["cx"] = round((results["xmin"] + results["xmax"]) / 2.0, 2)
             #results["cy"] = round((results["ymin"] + results["ymax"]) / 2.0, 2)
             results["centroids"] = list(zip(results.xcenter, results.ycenter))
@@ -93,11 +94,15 @@ class SpotFinder():
                 cars_in_area = results[results["centroids"].isin(centroids_in_polygon)]
                 print("cars in area/n", cars_in_area)
                 centroids = cars_in_area["centroids"].tolist()
+                area_boundaries =find_shorter_side(coordinates)
+                centroids.append(area_boundaries[0][3]) # dodanie skrajnych granic zaznaczonego obszaru
+                centroids.append(area_boundaries[1][3])
+
                 vehicle_size = calculate_averange_vehicle_size(coordinates, cars_in_area )
                 print("vehicle size", vehicle_size)
 
                 frame2 = draw_lines_between_cars(frame, centroids,vehicle_size)
-                frame2 = imutils.resize(frame2, width=800)
+                frame2 = imutils.resize(frame2, width=1000)
                 #print("list of closest points", list_of_closest_points)
 
             open_cv.imshow(str(self.video), frame2)

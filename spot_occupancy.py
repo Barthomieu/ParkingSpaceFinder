@@ -1,4 +1,5 @@
 import cv2 as open_cv
+import imutils
 import numpy as np
 import logging
 from func.drawing import draw_parking_spot
@@ -59,11 +60,11 @@ class SpotOccupancy:
 
 
             cnts = cnts[0] if len(cnts) == 2 else cnts[1]
-            print("CNTS", cnts)
+            #print("CNTS", cnts)
             rect = open_cv.minAreaRect(cnts[0])
-            print("RECT", rect)
+            #print("RECT", rect)
             box = np.int0(open_cv.boxPoints(rect))
-            print("BOX", box)
+            #print("BOX", box)
             open_cv.drawContours(output_image, [box], 0, (36, 255, 12), 3)
 
 
@@ -91,8 +92,8 @@ class SpotOccupancy:
             rect2 = open_cv.minAreaRect(coordinates)
             rect = open_cv.boundingRect(coordinates)
             logging.debug("rect: %s", rect)
-            print("rect", rect)
-            print("rect 2 ____", rect2)
+            #print("rect", rect)
+            #print("rect 2 ____", rect2)
 
             new_coordinates = coordinates.copy()
             new_coordinates[:, 0] = coordinates[:, 0] - rect[0]
@@ -172,7 +173,7 @@ class SpotOccupancy:
                 draw_parking_spot(frame2, coordinates, str(p["id"] + 1), WHITE, free_spots, color)
 
             #print("statusy", statuses)
-
+            frame2 = imutils.resize(frame2, width=1000)
             open_cv.imshow(str(self.video), frame2)
             k = open_cv.waitKey(1)
             if k == ord("q"):

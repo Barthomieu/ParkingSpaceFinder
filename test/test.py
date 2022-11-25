@@ -4,6 +4,7 @@ import torch
 import pandas
 import numpy
 import json
+from func.utils import midpoint
 # Model
 #model = torch.hub.load('ultralytics/yolov5', 'yolov5s', force_reload=True)
 

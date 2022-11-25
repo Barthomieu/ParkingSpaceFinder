@@ -1,8 +1,9 @@
 import cv2 as open_cv
-from func.utils import k_closest
+from func.utils import k_closest, midpoint
 
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
+font=open_cv.FONT_HERSHEY_SIMPLEX
 
 def draw_parking_spot(image,
                   coordinates,
@@ -58,12 +59,36 @@ def draw_parking_spot(image,
 def draw_lines_between_cars(frame, centroids, vehicle_size ):
     closest_points = []
     for point in centroids:
-        closest_points.append(k_closest(centroids,point,2))
+        print("Najbliższe punnkty ", point, k_closest(centroids,point,3))
 
+        closest_points.append( k_closest(centroids,point,3))
+
+    sum_of_spot = 0
 
     for p in closest_points:
-        print("tuple", tuple(p[0]), tuple(p[1]), "lista", p[0],p[1])
+        print("tuple", tuple(p[0]), tuple(p[1]), "lista", p[0],p[1], p[1][2])
+        p1 = (int(p[0][0]),int(p[0][1]))
+        p2 = (int(p[1][0]),int(p[1][1]))
+        p3 = (int(p[2][0]),int(p[2][1]))
 
-        frame = open_cv.line(frame,(int(p[0][0]),int(p[0][1])), (int(p[1][0]),int(p[1][1])), GREEN,2 )
+        if p[1][2] > (vehicle_size*1.25):
+            center = midpoint(p1, p2)
+            count = round(p[1][2] / (vehicle_size*1.15))
+            frame = open_cv.line(frame,p1, p2, GREEN,4 )
+            frame = open_cv.putText(frame, str(count), center, font, 1, RED, 2, open_cv.LINE_AA)
+            sum_of_spot+=count
+
+
+        if p[2][2] > (vehicle_size*1.25):
+            center = midpoint(p1, p3)
+            count = round(p[2][2] / (vehicle_size*1.15))
+
+            frame = open_cv.line(frame, p1, p3, GREEN, 4)
+            frame = open_cv.putText(frame, str(count), center, font, 1, RED, 2, open_cv.LINE_AA)
+            sum_of_spot += count
+#        else:
+            #frame = open_cv.line(frame, p1, p3, RED, 4)
+    open_cv.putText(frame, "Dostępne miejsca" + str(sum_of_spot), (100,100), font, 1, RED, 2, open_cv.LINE_AA)
+            #frame = open_cv.line(frame, (int(p[0][0]), int(p[0][1])), (int(p[1][0]), int(p[1][1])), RED, 2)
     return frame
 
