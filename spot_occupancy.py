@@ -65,7 +65,7 @@ class SpotOccupancy:
             #print("RECT", rect)
             box = np.int0(open_cv.boxPoints(rect))
             #print("BOX", box)
-            open_cv.drawContours(output_image, [box], 0, (36, 255, 12), 3)
+            #open_cv.drawContours(output_image, [box], 0, (36, 255, 12), 3)
 
 
             open_cv.circle(output_image, (cx, cy), 2, (0, 0, 255), 2, open_cv.FILLED)  # draw center dot on detected object
